@@ -67,13 +67,11 @@ Turning a shopping cart into a purchase order involves extra server side checks,
         // that's a problem.
         // If we don't have up-to-date prices, we can't create a
         // purchase order.
-        var allUpToDate = true; // Until we know otherwise.
         for (let entry of entries) {
           let sku = entry.sku;
           let stocked = entry.stocked;
 
           if (!stocked.is<Stocked>() || stocked.as<Stocked>().asOf < entry.asOf) {
-            allUpToDate = false;
             problemListBuilder.add({ message: messageNotUpToDate, severity: severityTrivial, sku });
           } else if (stocked.as<Stocked>().price.currencyData == unknownCurrencyData) {
             problemListBuilder.add({ message: messagePriceUnknown, severity: severityTransient, sku });
@@ -91,7 +89,7 @@ Turning a shopping cart into a purchase order involves extra server side checks,
         // Else, if we don't have a total a price, perhaps because some
         // entries use one currency and others use another, that's
         // a problem.
-        if (totalOrNull() == null) {
+        if (totalOrNull == null) {
           problemListBuilder.add({ message: messageTotalPriceUnknown, severity: severityTransient });
         }
 
@@ -103,6 +101,7 @@ Turning a shopping cart into a purchase order involves extra server side checks,
 
 To turn a a shopping cart into a purchase order, we need reliable price & availability info.
 
+    @json
     export sealed interface StockedStatus {
       public equals(other: StockedStatus): Boolean;
     }
@@ -113,6 +112,7 @@ Non-authoritative actors, e.g. clients, should create new entries with *UnknownS
 Servers must not trust *Stocked* info it receives unless this scheme is extended to include a mark of validity like a
 cryptographic signature check.
 
+    @json
     export class UnknownStockedStatus extends StockedStatus {
       public equals(other: StockedStatus): Boolean {
         other.is<UnknownStockedStatus>()
@@ -123,6 +123,7 @@ cryptographic signature check.
 A user-interface may use the *asOf* sequence marker, when it corresponds to a time, to determine whether the price and
 availability need to be re-requested.
 
+    @json
     export class Stocked(
 
 The price for one amount of the product.

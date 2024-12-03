@@ -8,6 +8,7 @@ A price is an amount of an [ISO 4217] currency. For example, 100 Japanese Yen
 is represented as `{ currencyCode: "JPY", amount: 100 }`.
 The amount may be positive, zero, or negative.
 
+    @json
     export class Price(
 
 A currency code is a string identifying the currency.
@@ -82,6 +83,31 @@ Some examples of price formatting.
       // ¤ is Unicode's generic currency symbol.
       assert(({ currencyCode: "WTF", amount:   12 }).toString() == "WTF¤12");
     }
+
+The `@json` notation means we can send prices over the network.
+
+    let { JsonTextProducer, NullInterchangeContext, parseJson } = import("std/json");
+
+    test("price json encoding") {
+      let price = { currencyCode: "USD", amount: 1234 };
+      let json = '{"currencyCode":"USD","amount":1234}';
+
+      let t = new JsonTextProducer();
+      Price.jsonAdapter().encodeToJson(price, t);
+
+      assert(t.toJsonString() == json);
+    }
+
+    test("price json decoding") {
+      let jsonSyntaxTree = parseJson('{ amount: 100, currencyCode: "AUD" }');
+      let price = Price.jsonAdapter().decodeFromJson(
+        jsonSyntaxTree,
+        NullInterchangeContext.instance
+      );
+      assert(price.currencyCode == "AUD");
+      assert(price.amount == 100);
+    }
+
 
 ## Currency definitions
 

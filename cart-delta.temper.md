@@ -103,6 +103,7 @@ A shopping cart delta contains all the information needed to:
 
 Its structure mirrors closely that of *Cart*.
 
+    @json
     export class CartDelta(
       public entryDeltas: List<CartEntryDelta>,
       public postalCode: String | Null,
@@ -114,6 +115,7 @@ Its structure mirrors closely that of *Cart*.
 A shopping cart entry delta mirrors the structure of a *CartEntry*
 but fields may be *null* to indicate no change.
 
+    @json
     export class CartEntryDelta(
       public sku: String,
       public count: Int | Null,
