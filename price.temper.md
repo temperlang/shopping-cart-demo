@@ -99,7 +99,7 @@ The `@json` notation means we can send prices over the network.
     }
 
     test("price json decoding") {
-      let jsonSyntaxTree = parseJson('{ amount: 100, currencyCode: "AUD" }');
+      let jsonSyntaxTree = parseJson('{ "amount": 100, "currencyCode": "AUD" }');
       let price = Price.jsonAdapter().decodeFromJson(
         jsonSyntaxTree,
         NullInterchangeContext.instance
