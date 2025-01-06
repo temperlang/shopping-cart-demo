@@ -1,0 +1,21 @@
+temper repl -w temper-build-root -b js
+
+cartDemo
+
+let d = new cartDemo.Price('USD', 100)
+
+`${d}`
+
+d.amount
+
+d.currencyData.minorUnit
+
+let stdJson = await import("@temperlang/std/json");
+
+stdJson
+
+let jsonOut = new stdJson.JsonTextProducer();
+
+cartDemo.Price.jsonAdapter().encodeToJson(d, jsonOut)
+
+jsonOut.toJsonString()

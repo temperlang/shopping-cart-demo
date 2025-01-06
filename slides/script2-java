@@ -1,0 +1,15 @@
+temper repl -w temper-build-root -b java
+
+import cart_demo.*;
+
+Price p = new Price("CAD", 150)
+
+import temper.std.json.*;
+
+JsonTextProducer jsonOut = new JsonTextProducer();
+
+Price.jsonAdapter().encodeToJson(p, jsonOut)
+
+jsonOut.toJsonString()
+
+System.out.println(jsonOut.toJsonString())

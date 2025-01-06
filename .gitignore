@@ -1,1 +1,7 @@
 /temper.out/**
+/server/target/
+*~
+/server/src/main/resources/assets/cart-demo/
+/server/src/main/resources/assets/node_modules/
+/server/src/main/resources/assets/std/
+/server/src/main/resources/assets/temper-core/
