@@ -1,3 +1,3 @@
 # Shopping Cart Demo
 
-See [config.temper.md](./config.temper.md) for details.
+See [temper/config.temper.md](./config.temper.md) for details.
