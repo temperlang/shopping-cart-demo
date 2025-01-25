@@ -1,3 +1,8 @@
-* { font-size: 36px; font-family: "Fira Sans", "Open Sans", "Roboto", "Arial", "Verdana"; color: white; font-weight: 200 }
-body { background: #222 }
+* { font-size: 36px; font-family: "Fira Sans", "Open Sans", "Roboto", "Arial", "Verdana"; color: white }
+body { background: #2b3a55 }
 ul, li { line-height: 150% }
+h1, h2 { font-weight: bolder }
+section.slide { display: none }
+section.slide.current { display: block }
+.slide img { max-width:100%; max-height:100% }
+#underlay { position: absolute; z-index: -1;  background-image: url('temper-logo-mode-dependent.svg'); background-position: center; background-repeat: no-repeat; background-size: 50%; opacity: 0.4 }
