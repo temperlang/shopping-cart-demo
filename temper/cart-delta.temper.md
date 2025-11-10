@@ -579,14 +579,14 @@ information, that shows up in the changes.
         "      "stocked": {
         "        "price": { "currencyCode": "USD", "amount": 1000 },
         "        "available": true,
-        "        "marks": { "sMark": 1, "cMark": 1000 }
+        "        "marks": { "cMark": 1000, "sMark": 1 }
         "      },
-        "      "marks": { "sMark": 1, "cMark": 1000 }
+        "      "marks": { "cMark": 1000, "sMark": 1 }
         "    }
         "  ],
         "  "loc": {
         "    "postalCode": "90210",
-        "    "marks": { "sMark": 1, "cMark": 1000 }
+        "    "marks": { "cMark": 1000, "sMark": 1 }
         "  }
         "}
         ,

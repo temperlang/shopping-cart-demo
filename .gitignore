@@ -1,4 +1,5 @@
 /temper.out/**
+/temper/temper.out/**
 /server/target/
 *~
 /server/src/main/resources/assets/cart-demo/
