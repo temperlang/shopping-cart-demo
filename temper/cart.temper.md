@@ -14,37 +14,36 @@ The location lets the server infer a currency for purchases and outside a demo c
 
 If, for all entries, we know the unit-price, and those prices are in the same currency, we can compute a total.
 
-      public get totalOrNull(): Price | Null {
+      public get totalOrNull(): Price? {
         if (entries.isEmpty) { return null }
 
         let stocked0 = entries[0].stocked;
-        when (stocked0) {
-          is UnknownStockedStatus -> return null;
-          is Stocked -> void;
-        }
+        return if (stocked0 is Stocked) {
+          let currencyCode = stocked0.price.currencyCode;
 
-        let currencyCode = stocked0.as<Stocked>().price.currencyCode;
+          var totalAmount = 0;
+          for (let entry of entries) {
+            if (entry.count != 0) {
+              let stocked = entry.stocked;
+              when (stocked) {
+                is UnknownStockedStatus -> return null;
+                is Stocked -> if (stocked.marks.cMark < entry.marks.cMark) {
+                  return null
+                } else {
+                  let price = stocked.price;
+                  // We can't add prices with different currencies.
+                  if (price.currencyCode != currencyCode) { return null }
 
-        var totalAmount = 0;
-        for (let entry of entries) {
-          if (entry.count != 0) {
-            let stocked = entry.stocked;
-            when (stocked) {
-              is UnknownStockedStatus -> return null;
-              is Stocked -> if (stocked.marks.cMark < entry.marks.cMark) {
-                return null
-              } else {
-                let price = stocked.price;
-                // We can't add prices with different currencies.
-                if (price.currencyCode != currencyCode) { return null }
-
-                totalAmount += price.amount * entry.count;
-              };
+                  totalAmount += price.amount * entry.count;
+                };
+              }
             }
           }
-        }
 
-        return ({ currencyCode, amount: totalAmount })
+          ({ currencyCode, amount: totalAmount })
+        } else {
+          null
+        }
       }
 
 There are a number of problems that might affect purchasing the items in a cart.  The problem list allows presenting
@@ -56,7 +55,7 @@ Turning a shopping cart into a purchase order involves extra server side checks,
         // Preserving zero count entries in the list helps,
         // like tombstones, to better resolve merge conflicts.
         // But we don't care about entries with a count of zero.
-        let entries = this.entries.filter { (e);; e.count != 0 };
+        let entries = this.entries.filter { e => e.count != 0 };
 
         let problemListBuilder = new ListBuilder<CartProblem>();
         // Trying to purchase an empty cart is likely a user error.
@@ -72,12 +71,16 @@ Turning a shopping cart into a purchase order involves extra server side checks,
           let sku = entry.sku;
           let stocked = entry.stocked;
 
-          if (!stocked.is<Stocked>() || stocked.as<Stocked>().marks.cMark < entry.marks.cMark) {
+          if (stocked is Stocked) {
+            if (stocked.marks.cMark < entry.marks.cMark) {
+              problemListBuilder.add({ message: messageNotUpToDate, severity: severityTrivial, sku });
+            } else if (stocked.price.currencyData == unknownCurrencyData) {
+              problemListBuilder.add({ message: messagePriceUnknown, severity: severityTransient, sku });
+            } else if (!stocked.available) {
+              problemListBuilder.add({ message: messageUnavailable, severity: severityBlocking, sku });
+            }
+          } else {
             problemListBuilder.add({ message: messageNotUpToDate, severity: severityTrivial, sku });
-          } else if (stocked.as<Stocked>().price.currencyData == unknownCurrencyData) {
-            problemListBuilder.add({ message: messagePriceUnknown, severity: severityTransient, sku });
-          } else if (!stocked.as<Stocked>().available) {
-            problemListBuilder.add({ message: messageUnavailable, severity: severityBlocking, sku });
           }
           if (entry.count < 0) {
             // This kind of problem should be ruled out by the user interface, but
@@ -118,7 +121,7 @@ cryptographic signature check.
     @json
     export class UnknownStockedStatus extends StockedStatus {
       public equals(other: StockedStatus): Boolean {
-        other.is<UnknownStockedStatus>()
+        other is UnknownStockedStatus
       }
       public withMarks(newMarks: Marks): UnknownStockedStatus { this }
     }
@@ -146,11 +149,13 @@ The time as of which the stocked info is valid.
       public marks: Marks,
     ) extends StockedStatus, Resolvable {
       public equals(other: StockedStatus): Boolean {
-        if (!other.is<Stocked>()) { return false }
-        let otherStocked = other.as<Stocked>();
-
-        available == otherStocked.available
-        && price.equals(otherStocked.price)
+        when (other) {
+          is Stocked ->
+            available == other.available
+            && price.equals(other.price)
+          ;
+          else -> return false;
+        }
       }
       public withMarks(newMarks: Marks): Stocked {
         ({ price: this.price, available: this.available, marks: newMarks })
@@ -291,7 +296,7 @@ Problems have a level of severity which helps UIs decide whether to grab the use
 
 If the problem applies to a particular cart entry, then a UI can associate it with the entry in the tabular view.
 
-      public sku: String | Null = null,
+      public sku: String? = null,
 
     ) {}
 

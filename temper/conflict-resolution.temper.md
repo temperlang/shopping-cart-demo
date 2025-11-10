@@ -44,11 +44,11 @@ precedence over a lesser one.
 
     @json
     export class Marks(
-      public sMark: ServerMark | Null = null,
       public cMark: ClientMark,
+      public sMark: ServerMark? = null,
     ) {
-      public withSMark(newSMark: ServerMark | Null): Marks {
-        ({ sMark: newSMark, cMark })
+      public withSMark(newSMark: ServerMark?): Marks {
+        ({ cMark, sMark: newSMark })
       }
     }
 
@@ -66,7 +66,7 @@ Each of the questions above involving marks can be answered with these helper fu
 
     export let later<R extends Resolvable>(
       current: R,
-      received: R | Null,
+      received: R?,
     ): R {
       if (received != null) {
         let receivedCMark = received.marks.cMark;
@@ -90,9 +90,9 @@ Each of the questions above involving marks can be answered with these helper fu
 *LaterOrNull* is like *later* but doesn't require that you have a thing to start with.
 
     export let laterOrNull<R extends Resolvable>(
-      current: R | Null,
-      received: R | Null,
-    ): R | Null {
+      current: R?,
+      received: R?,
+    ): R? {
       if (current != null) {
         later<R>(current, received)
       } else {
@@ -103,7 +103,7 @@ Each of the questions above involving marks can be answered with these helper fu
 A client needs an update for a *Resolvable* object if its latest *ServerMark* is less than the one stored with the object.
 
     let clientNeedsUpdate(
-      current: Resolvable | Null,
+      current: Resolvable?,
       clientHas: ServerMark,
     ): Boolean {
       current != null && clientHas < current.marks.sMark
@@ -160,7 +160,7 @@ Here's that scenario in test form:
 
       // The server has a view of its cart, and its SMark counter.
       var sMark = 0;
-      var serverCart = { entries: [], loc: { postalCode: null, marks: { sMark, cMark: 0 } } };
+      var serverCart = { entries: [], loc: { postalCode: null, marks: { cMark: 0, sMark } } };
 
       // An app syncs to the server updating the cart for that user account.
       let newCartRequest = { entryDeltas: [], loc: { postalCode: "90210", marks: { cMark: now, sMark: 0 } } };

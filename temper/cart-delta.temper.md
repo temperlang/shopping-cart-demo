@@ -26,7 +26,7 @@ Its structure mirrors closely that of *Cart*.
     @json
     export class CartDelta(
       public entryDeltas: List<CartEntryDelta>,
-      public loc: Location | Null,
+      public loc: Location?,
     ) {
 
       public get isEmpty(): Boolean {
@@ -59,7 +59,7 @@ later submission to a server.
 
         let thisLoc = this.loc;
         let otherLoc = other.loc;
-        let loc: Location | Null = laterOrNull<Location>(thisLoc, otherLoc);
+        let loc: Location? = laterOrNull<Location>(thisLoc, otherLoc);
 
         ({
           entryDeltas: mergedEntryDeltas.toList(),
@@ -172,7 +172,7 @@ Counts do **not** sum.
       assert(dABPlusBCBySku.has('C'));
       // counts do not sum
       assert(
-        (dABPlusBCBySku['B'].as<CartEntryDelta>().count ?? -1) == 1
+        ((dABPlusBCBySku['B'] as CartEntryDelta).count ?? -1) == 1
       );
 
       let dBCPlusABBySku = entryDeltasBySkuOf(dBCPlusAB);
@@ -180,7 +180,7 @@ Counts do **not** sum.
       assert(dBCPlusABBySku.has('B'));
       assert(dBCPlusABBySku.has('C'));
       assert(
-        (dBCPlusABBySku['B'].as<CartEntryDelta>().count ?? -1) == 1
+        ((dBCPlusABBySku['B'] as CartEntryDelta).count ?? -1) == 1
       );
     }
 
@@ -262,15 +262,15 @@ but fields may be *null* to indicate no change.
     @json
     export class CartEntryDelta(
       public sku: String,
-      public count: Int | Null,
-      public stocked: StockedStatus | Null,
+      public count: Int?,
+      public stocked: StockedStatus?,
       public marks: Marks,
     ) extends Resolvable {
       public withMarks(newMarks: Marks): CartEntryDelta {
         ({ class: CartEntryDelta, sku, count, stocked, marks: newMarks })
       }
 
-      public withStocked(newStocked: StockedStatus | Null): CartEntryDelta {
+      public withStocked(newStocked: StockedStatus?): CartEntryDelta {
         ({ class: CartEntryDelta, sku, count, stocked: newStocked, marks })
       }
     }
@@ -287,12 +287,12 @@ cart and a delta.
 If the server needs to stamp changes with a server mark so it can send updates,
 pass the new mark here.
 
-      sMark: ServerMark | Null = null,
+      sMark: ServerMark? = null,
 
 Determines stocked status for the given SKU and count at the given location.
 Null if the current context doesn't have access to stocking info.
 
-      stockedForSku: (fn (sku: String, count: Int, loc: Location): StockedStatus) | Null = null,
+      stockedForSku: (fn (sku: String, count: Int, loc: Location): StockedStatus)? = null,
     ): Cart {
       // First, figure out the location. If the location has changed
       // and we have access to stocking information, then we can proactively
@@ -320,7 +320,7 @@ Null if the current context doesn't have access to stocking info.
         let sku = entry.sku;
         var mergedEntry = entry;
 
-        let entryDelta: CartEntryDelta | Null = entryDeltasBySku.getOr(sku, null);
+        let entryDelta: CartEntryDelta? = entryDeltasBySku.getOr(sku, null);
         if (entryDelta != null) {
           entryDeltasBySku[sku] = null;  // consume
           // Fold sMark and stock info into the delta.
@@ -406,9 +406,9 @@ Null if the current context doesn't have access to stocking info.
         // now requesting 4, we need to recheck availability.
         if (dCount > count) {
           stocked = dStocked ?? new UnknownStockedStatus();
-        } else if (eStocked.is<Stocked>()) {
+        } else if (eStocked is Stocked) {
           stocked = eStocked;
-          if (dStocked.is<Stocked>()) {
+          if (dStocked is Stocked) {
             let dStockSMark: ServerMark =
               dStocked.marks.sMark ?? -2;
             let eStockSMark: ServerMark =
@@ -417,7 +417,7 @@ Null if the current context doesn't have access to stocking info.
               stocked = dStocked;
             }
           }
-        } else if (dStocked.is<Stocked>()) {
+        } else if (dStocked is Stocked) {
           stocked = dStocked;
         }
       }
@@ -430,8 +430,8 @@ Null if the current context doesn't have access to stocking info.
     // Utility for operations on delta entry lists.
     let entryDeltasBySkuOf(
       delta: CartDelta
-    ): MapBuilder<String, CartEntryDelta | Null> {
-      let m = new MapBuilder<String, CartEntryDelta | Null>();
+    ): MapBuilder<String, CartEntryDelta?> {
+      let m = new MapBuilder<String, CartEntryDelta?>();
       for (let entryDelta of delta.entryDeltas) {
         let sku = entryDelta.sku;
         m[sku] = later(entryDelta, m.getOr(sku, null));
@@ -453,7 +453,7 @@ by the receiver of the *delta*.
     export let diffCart(
       newCart: Cart,
       oldCart: Cart,
-      has: ServerMark | Null,
+      has: ServerMark?,
     ): CartDelta {
       let oldLoc = oldCart.loc;
       let newLoc = newCart.loc;
@@ -466,14 +466,14 @@ by the receiver of the *delta*.
             (oldLoc.marks.sMark ?? -1) != (newLoc.marks.sMark ?? -1)
           )
       };
-      var loc: Location | Null = if (locChanged) { newLoc } else { null };
+      var loc: Location? = if (locChanged) { newLoc } else { null };
 
       let entryDeltas = new ListBuilder<CartEntryDelta>();
 
       // Collect entries by SKU from the old cart.
       // First, we'll make sure there's an entry for any that changed or that are new in newCart.
       // Second, we'll create a zero count entry tombstone for any in oldCart that are missing in newCart.
-      let entriesBySku = new MapBuilder<String, CartEntry | Null>();
+      let entriesBySku = new MapBuilder<String, CartEntry?>();
       for (let oldEntry of oldCart.entries) {
         let sku = oldEntry.sku;
         let old = entriesBySku.getOr(sku, null);
@@ -506,8 +506,8 @@ by the receiver of the *delta*.
           let newToMe = has != null && newSMark != null && newSMark > has;
 
           if (newToMe || anyChanged) {
-            let dCount   = newToMe || countChanged   ? newCount   : null;
-            let dStocked = newToMe || stockedChanged ? newStocked : null;
+            let dCount   = if (newToMe || countChanged  ) { newCount   } else { null };
+            let dStocked = if (newToMe || stockedChanged) { newStocked } else { null };
             entryDeltas.add(new CartEntryDelta(sku, dCount, dStocked, newMarks));
           }
         }
@@ -534,7 +534,7 @@ information, that shows up in the changes.
       // State of the cart on the server initially
       let cartBefore = {
         entries: [],
-        loc: { postalCode: null, marks: { sMark: null, cMark: 0 } }
+        loc: { postalCode: null, marks: { cMark: 0, sMark: null } }
       };
 
       // The delta sent by the client
@@ -544,19 +544,19 @@ information, that shows up in the changes.
             sku: "SKU-123",
             count: 10,
             stocked: new UnknownStockedStatus(),
-            marks: { sMark: null, cMark },
+            marks: { cMark, sMark: null },
           }
         ],
-        loc: { postalCode: "90210", marks: { sMark: null, cMark } },
+        loc: { postalCode: "90210", marks: { cMark, sMark: null } },
       };
 
       let sMarkClientHas: ServerMark = 0;
 
-      let cartAfter = mergeCart(cartBefore, delta, sMark) { (sku, count, loc);;
+      let cartAfter = mergeCart(cartBefore, delta, sMark) { (sku, count, loc) =>
         ({
           price: { currencyCode: loc.currencyCode, amount: 1000 },
           available: true,
-          marks: { sMark, cMark: 1001 },
+          marks: { cMark: 1001, sMark },
         })
       };
 
@@ -571,25 +571,25 @@ information, that shows up in the changes.
       let wantedJson = new JsonTextProducer();
       parseJsonToProducer(
         """
-          {
-            "entryDeltas": [
-              {
-                "sku": "SKU-123",
-                "count": 10,
-                "stocked": {
-                  "price": { "currencyCode": "USD", "amount": 1000 },
-                  "available": true,
-                  "marks": { "sMark": 1, "cMark": 1000 }
-                },
-                "marks": { "sMark": 1, "cMark": 1000 }
-              }
-            ],
-            "loc": {
-              "postalCode": "90210",
-              "marks": { "sMark": 1, "cMark": 1000 }
-            }
-          }
-        """,
+        "{
+        "  "entryDeltas": [
+        "    {
+        "      "sku": "SKU-123",
+        "      "count": 10,
+        "      "stocked": {
+        "        "price": { "currencyCode": "USD", "amount": 1000 },
+        "        "available": true,
+        "        "marks": { "sMark": 1, "cMark": 1000 }
+        "      },
+        "      "marks": { "sMark": 1, "cMark": 1000 }
+        "    }
+        "  ],
+        "  "loc": {
+        "    "postalCode": "90210",
+        "    "marks": { "sMark": 1, "cMark": 1000 }
+        "  }
+        "}
+        ,
         wantedJson
       );
       assert(updateJson.toJsonString() == wantedJson.toJsonString());
@@ -603,10 +603,10 @@ info, their merge will incorporate that into their local store.
         entries: [
           { class: CartEntry, sku: "SKU-1", count: 11,
             stocked: new UnknownStockedStatus(),
-            marks: { sMark: null, cMark: 1000 },
+            marks: { cMark: 1000, sMark: null },
           },
         ],
-        loc: { postalCode: "90210", marks: { sMark: null, cMark: 1000 } },
+        loc: { postalCode: "90210", marks: { cMark: 1000, sMark: null } },
       };
 
       let serverPingback = {
@@ -615,12 +615,12 @@ info, their merge will incorporate that into their local store.
             stocked: {
               available: true,
               price: { currencyCode: "USD", amount: 1250 },
-              marks: { sMark: 123, cMark: 0 },
+              marks: { cMark: 0, sMark: 123 },
             },
-            marks: { sMark: 123, cMark: 1000 },
+            marks: { cMark: 1000, sMark: 123 },
           },
         ],
-        loc: { postalCode: "90210", marks: { sMark: 123, cMark: 1000 } },
+        loc: { postalCode: "90210", marks: { cMark: 1000, sMark: 123 } },
       };
 
       let newClientCart = mergeCart(clientCart, serverPingback);
@@ -628,6 +628,6 @@ info, their merge will incorporate that into their local store.
       assert(newClientCart.entries.length == 1);
       assert((newClientCart.loc.postalCode ?? "??") == "90210");
       assert((newClientCart.loc.marks.sMark ?? -1) == 123);
-      assert(newClientCart.entries[0].stocked.is<Stocked>());
+      assert(newClientCart.entries[0].stocked is Stocked);
       assert((newClientCart.entries[0].marks.sMark ?? -1) == 123);
     }

@@ -6,7 +6,7 @@ console.log("Loaded js");
 // The local view of the cart
 let cart = new cartDemo.Cart(
   [],
-  new cartDemo.Location(null, new cartDemo.Marks(null, 0)),
+  new cartDemo.Location(null, new cartDemo.Marks(0, null)),
 );
 let lastSMark = 0;
 
@@ -206,7 +206,7 @@ function updateCartView() {
         `SKU-${problem.sku} ${
           new cartDemo.CartEntry(
             problem.sku, 1, null,
-            new cartDemo.Marks(null, 0)
+            new cartDemo.Marks(0, null)
           ).description
         }`
       );
@@ -243,7 +243,7 @@ function updateCountForSku(sku, countInput) {
     sku,
     newCount,
     entryDelta?.stocked || null,
-    new cartDemo.Marks(null, cMark),
+    new cartDemo.Marks(cMark, null),
   );
   let delta = new cartDemo.CartDelta([newEntryDelta], null);
   applyUserChange(delta);
@@ -258,7 +258,7 @@ function addSkuFromInput(skuInput) {
       [
         new cartDemo.CartEntryDelta(
           sku, 1, null,
-          new cartDemo.Marks(null, cMark),
+          new cartDemo.Marks(cMark, null),
         ),
       ],
       null,
@@ -272,7 +272,7 @@ function updateLocFromInput(locInput) {
   let cMark = currentCMark();
   let delta = new cartDemo.CartDelta(
     [],
-    new cartDemo.Location(newPostalCode, new cartDemo.Marks(null, cMark)),
+    new cartDemo.Location(newPostalCode, new cartDemo.Marks(cMark, null)),
   );
   applyUserChange(delta);
 }

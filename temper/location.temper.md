@@ -10,7 +10,7 @@ For demo purposes, we just store a postal code: US zip code or other string iden
 
     @json
     export class Location(
-      public postalCode: String | Null,
+      public postalCode: String?,
       public marks: Marks,
     ) extends Resolvable {
 

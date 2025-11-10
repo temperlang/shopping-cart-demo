@@ -4,20 +4,20 @@ Support for [ISO 4217] which defines currency codes for representing monies.
 
 ## Price type
 
-A price is an amount of an [ISO 4217] currency. For example, 100 Japanese Yen
-is represented as `{ currencyCode: "JPY", amount: 100 }`.
+A price is an amount of an [ISO 4217] currency. For example, 2000 Japanese Yen
+is represented as `{ "currencyCode": "JPY", "amount": 2000 }`.
 The amount may be positive, zero, or negative.
 
     @json
     export class Price(
 
-A currency code is a string identifying the currency.
+currencyCode is a string identifying the currency.
 For example, "USD" represents US dollars.
 See also [the active codes list].
 
       public currencyCode: String,
 
-An amount of the currency.
+Amount is the amount of the currency.
 ISO 4217 currency entries include a *minorUnit* value, the number of digits
 after the decimal point. That many digits of amount are after the decimal points.
 
@@ -68,20 +68,20 @@ We can format prices to strings.
 Some examples of price formatting.
 
     test("price formatting") {
-      assert(({ currencyCode: "USD", amount:    0 }).toString() == "US$0.00");
+      assert({ currencyCode: "USD", amount:    0 }.toString() == "US$0.00");
       // 1 with US dollars means 1 cent because USD below has 2 digits after the decimal point.
-      assert(({ currencyCode: "USD", amount:    1 }).toString() == "US$0.01");
-      assert(({ currencyCode: "USD", amount:   10 }).toString() == "US$0.10");
-      assert(({ currencyCode: "USD", amount: 1000 }).toString() == "US$10.00");
-      assert(({ currencyCode: "USD", amount: 1234 }).toString() == "US$12.34");
+      assert({ currencyCode: "USD", amount:    1 }.toString() == "US$0.01");
+      assert({ currencyCode: "USD", amount:   10 }.toString() == "US$0.10");
+      assert({ currencyCode: "USD", amount: 1000 }.toString() == "US$10.00");
+      assert({ currencyCode: "USD", amount: 1234 }.toString() == "US$12.34");
       // Negative amounts
-      assert(({ currencyCode: "USD", amount: -234 }).toString() == "US$-2.34");
-      assert(({ currencyCode: "USD", amount:   -5 }).toString() == "US$-0.05");
-      // A non US centric currency.
-      assert(({ currencyCode: "CAD", amount:  100 }).toString() == "CA$1.00");
+      assert({ currencyCode: "USD", amount: -234 }.toString() == "US$-2.34");
+      assert({ currencyCode: "USD", amount:   -5 }.toString() == "US$-0.05");
+      // Non US-centric currency.
+      assert({ currencyCode: "CAD", amount:  100 }.toString() == "CA$1.00");
       // An unknown currency includes the code for debugging purposes.
       // ¤ is Unicode's generic currency symbol.
-      assert(({ currencyCode: "WTF", amount:   12 }).toString() == "WTF¤12");
+      assert({ currencyCode: "WTF", amount:   12 }.toString() == "WTF¤12");
     }
 
 The `@json` notation means we can send prices over the network.
@@ -158,6 +158,13 @@ https://www.six-group.com/en/products-services/financial-information/data-standa
         textSuffix: "",
         decimalPoint: ".",
       };
+      m["JPY"] = {
+        code: "JPY",
+        minorUnit: 0,
+        textPrefix: "¥",
+        textSuffix: "",
+        decimalPoint: ".",
+      };
       m.toMap()
     };
 
@@ -191,8 +198,6 @@ https://www.six-group.com/en/products-services/financial-information/data-standa
       sb.appendBetween(intDecimalString, afterSign, end);
       sb.toString()
     }
-
-    let { StringBuilder } = import("std/strings");
 
 [ISO 4217]: https://en.wikipedia.org/wiki/ISO_4217
 [active codes list]: https://en.wikipedia.org/wiki/ISO_4217#Active_codes_%28list_one%29

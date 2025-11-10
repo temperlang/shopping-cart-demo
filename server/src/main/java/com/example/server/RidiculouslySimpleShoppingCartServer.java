@@ -37,7 +37,7 @@ import org.eclipse.jetty.util.Callback;
 
 public class RidiculouslySimpleShoppingCartServer extends Handler.Abstract {
 
-  private static Cart emptyCart = new Cart(Collections.emptyList(), new Location(null, new Marks(null, 0)));
+  private static Cart emptyCart = new Cart(Collections.emptyList(), new Location(null, new Marks(0, null)));
   private Cart cart = emptyCart;
   private int sMark = 0;
 
@@ -95,7 +95,7 @@ public class RidiculouslySimpleShoppingCartServer extends Handler.Abstract {
               htmlEsc(or(cart.loc.getPostalCode(), ""))));
       w.write("<table><tr><th>Sku<th>Count</tr>\n");
       List<CartEntry> formEntries = new ArrayList<>(cart.getEntries());
-      formEntries.add(new CartEntry("", 1, null, new Marks(null, 0))); // Leave room for a new entry
+      formEntries.add(new CartEntry("", 1, null, new Marks(0, null))); // Leave room for a new entry
       for (CartEntry e : formEntries) {
         w.write(String.format(
               "  <tr><td><input name=sku value='%1$s'><td input name=count value='%2$d'></tr>\n",
@@ -345,7 +345,7 @@ public class RidiculouslySimpleShoppingCartServer extends Handler.Abstract {
       amount *= 10;
     }
     Price price = new Price(currencyCode, amount);
-    Marks marks = new Marks(null, 0);
+    Marks marks = new Marks(0, null);
     return new Stocked(price, available, marks);
   }
 
